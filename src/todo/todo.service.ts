@@ -2,15 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { use } from 'passport';
 
 @Injectable()
 export class TodoService {
   constructor(private readonly dbservice:PrismaService){}
-  async create(createTodoDto: CreateTodoDto) {
+  async create(createTodoDto: CreateTodoDto, user_id:number) {
   const todo = await this.dbservice.todo.create({
     data:{
       name: createTodoDto.name,
       action: createTodoDto.action,
+      user: {connect: {id:user_id} },
     }
   })
   if(todo){

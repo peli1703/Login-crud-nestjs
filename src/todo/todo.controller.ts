@@ -9,9 +9,9 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth/jwt-auth.guard';
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
-  @Post('create')
-  create(@Body() createTodoDto: CreateTodoDto) {
-    return this.todoService.create(createTodoDto);
+  @Post('/create/:user_id')
+  create(@Body() createTodoDto: CreateTodoDto,@Param('user_id') user_id:string) {
+    return this.todoService.create(createTodoDto, +user_id);
   }
 
   @Get('/getdata')

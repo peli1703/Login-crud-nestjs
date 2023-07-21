@@ -17,6 +17,8 @@ model user {
   password    String      @db.VarChar(200)
   created_at  DateTime?   @db.DateTime(0)
   updated_at  DateTime?   @db.DateTime(0)
+
+  todos       todo[]      @relation("user_todos")
 }
 
 model todo {
@@ -25,4 +27,7 @@ model todo {
   action      String      @db.VarChar(255)
   created_at  DateTime?   @db.DateTime(0)
   updated_at  DateTime?   @db.DateTime(0)
+
+  user_id     Int         @db.Int
+  user        user        @relation("user_todos", fields: [user_id], references: [id])
 }

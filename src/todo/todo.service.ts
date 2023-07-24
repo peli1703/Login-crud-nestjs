@@ -1,18 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseGuards } from '@nestjs/common';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { use } from 'passport';
+import { JwtAuthGuard } from 'src/auth/jwt-auth/jwt-auth.guard';
 
 @Injectable()
 export class TodoService {
   constructor(private readonly dbservice:PrismaService){}
-  async create(createTodoDto: CreateTodoDto, user_id:number) {
+  @UseGuards(JwtAuthGuard)
+  async create(createTodoDto: CreateTodoDto, user_id : number) {
   const todo = await this.dbservice.todo.create({
     data:{
       name: createTodoDto.name,
       action: createTodoDto.action,
-      user: {connect: {id:user_id} },
+      status: 'Belum_dikerjakan',
+      user: {connect: {id : user_id} },
     }
   })
   if(todo){
@@ -81,6 +84,48 @@ export class TodoService {
       return{
         status:401,
         massage:'failed update data'
+      }
+    }
+  }
+
+  async doing(id: number) {
+
+    const todo = await this.dbservice.todo.update({
+      where : {id},
+      data: {
+        status : 'Sedang_dikerjakan'
+      }
+    })
+    if(todo){
+      return{
+        status:201,
+        massage:'success update status',
+      }
+    }else{
+      return{
+        status:401,
+        massage:'failed update status'
+      }
+    }
+  }
+
+  async done(id: number) {
+
+    const todo = await this.dbservice.todo.update({
+      where : {id},
+      data: {
+        status : 'Selesai'
+      }
+    })
+    if(todo){
+      return{
+        status:201,
+        massage:'success update status',
+      }
+    }else{
+      return{
+        status:401,
+        massage:'failed update status'
       }
     }
   }

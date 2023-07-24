@@ -21,13 +21,19 @@ model user {
   todos       todo[]      @relation("user_todos")
 }
 
+enum status{
+  Sedang_dikerjakan
+  Selesai
+  Belum_dikerjakan
+}
+
 model todo {
   id          Int         @id @default(autoincrement())
   name        String      @db.VarChar(45)
   action      String      @db.VarChar(255)
+  status      status
   created_at  DateTime?   @db.DateTime(0)
   updated_at  DateTime?   @db.DateTime(0)
-
   user_id     Int         @db.Int
   user        user        @relation("user_todos", fields: [user_id], references: [id])
 }

@@ -15,25 +15,23 @@ model user {
   name        String      @db.VarChar(45)
   email       String      @unique(map: "email_UNIQUE") @db.VarChar(45)
   password    String      @db.VarChar(200)
-  created_at  DateTime?   @db.DateTime(0)
+  created_at  DateTime?   @db.DateTime@default(now())
   updated_at  DateTime?   @db.DateTime(0)
 
   todos       todo[]      @relation("user_todos")
 }
 
-enum status{
-  Sedang_dikerjakan
-  Selesai
-  Belum_dikerjakan
-}
+
 
 model todo {
   id          Int         @id @default(autoincrement())
   name        String      @db.VarChar(45)
-  action      String      @db.VarChar(255)
-  status      status
-  created_at  DateTime?   @db.DateTime(0)
-  updated_at  DateTime?   @db.DateTime(0)
+  title       String      @db.VarChar(255)
+  description String      @db.VarChar(255)
+  status      Int
   user_id     Int         @db.Int
+  created_at  DateTime?   @db.DateTime@default(now())
+  updated_at  DateTime?   @db.DateTime(0)
+ 
   user        user        @relation("user_todos", fields: [user_id], references: [id])
 }

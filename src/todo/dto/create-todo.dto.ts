@@ -1,5 +1,6 @@
-
 export class CreateTodoDto {
     name : string;
-    action : string; 
+    title : string
+    description : string; 
+    status : number;
 }

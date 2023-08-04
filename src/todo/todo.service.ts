@@ -1,6 +1,7 @@
-import { Injectable, UseGuards } from '@nestjs/common';
+import { HttpStatus, Injectable, UseGuards } from '@nestjs/common';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
+import { UpdateTodoStatusDTO } from './dto/update-todo-status.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { use } from 'passport';
 import { JwtAuthGuard } from 'src/auth/jwt-auth/jwt-auth.guard';
@@ -13,122 +14,131 @@ export class TodoService {
   const todo = await this.dbservice.todo.create({
     data:{
       name: createTodoDto.name,
-      action: createTodoDto.action,
-      status: 'Belum_dikerjakan',
+      title: createTodoDto.title,
+      description: createTodoDto.description,
+      status: 0,
       user: {connect: {id : user_id} },
+      
     }
   })
   if(todo){
     return{
-      status:201,
+      status:200,
       massage:'success create',
       data: todo
     }
   }else{
     return{
-      status:401,
+      status:400,
       massage:'failed create'
     }
   }
   }
 
-
+  // findAll() — Menemukan semua item dalam database menggunakan metode find()
   async findAll() {
     const todo = await this.dbservice.todo.findMany()
     if(todo){
       return{
-        status:201,
+        status:200,
         massage:'success find data',
         data: todo
       }
     }else{
       return{
-        status:401,
+        status:400,
         massage:'failed find data'
       }
     }
   }
 
+  // findOne() — Menemukan item yang memiliki id yang sama dengan parameter fungsi
   async findOne(id: number) {
     const todo = await this.dbservice.todo.findFirst({
       where : {id}
     })
     if(todo){
       return{
-        status:201,
+        status:200,
         massage:'success find one data',
         data: todo
       }
     }else{
       return{
-        status:401,
+        status:400,
         massage:'failed find one data'
       }
     }
   }
 
+
+  
   async update(id: number, updateTodoDto: UpdateTodoDto) {
     const todo = await this.dbservice.todo.update({
       where : {id},
       data: {
         name : updateTodoDto.name,
-        action : updateTodoDto.action,
+        title : updateTodoDto.title,
+        description : updateTodoDto.description,
+        updated_at : new Date()
       }
     })
     if(todo){
       return{
-        status:201,
+        status:200,
         massage:'success update data',
+        data : {
+          todo
+        }
       }
     }else{
       return{
-        status:401,
+        status:400,
         massage:'failed update data'
       }
     }
   }
 
-  async doing(id: number) {
-
+  async status(id: number, updateTodoStatusDto: UpdateTodoStatusDTO) {
+    try{
     const todo = await this.dbservice.todo.update({
       where : {id},
       data: {
-        status : 'Sedang_dikerjakan'
+        status : updateTodoStatusDto.status,
+        updated_at : new Date()  
       }
     })
-    if(todo){
+    if(todo.status == 1){
       return{
-        status:201,
-        massage:'success update status',
+        status:200,
+        massage:'sedang dikerjakan',
+        data : {
+          todo
+        }
       }
-    }else{
+    }else if(todo.status == 2){
       return{
-        status:401,
+        status:200,
+        massage:'selesai',
+        data : {
+          todo
+        }
+      }
+    }
+    else{
+      return{
+        status:400,
         massage:'failed update status'
       }
     }
-  }
-
-  async done(id: number) {
-
-    const todo = await this.dbservice.todo.update({
-      where : {id},
-      data: {
-        status : 'Selesai'
-      }
-    })
-    if(todo){
-      return{
-        status:201,
-        massage:'success update status',
-      }
-    }else{
-      return{
-        status:401,
-        massage:'failed update status'
-      }
+  } catch (error){
+    return {
+      message: "Failed to update status",
+      status: HttpStatus.BAD_REQUEST
     }
   }
+  }
+
 
   async remove(id: number) {
     const todo = await this.dbservice.todo.delete({
@@ -136,13 +146,13 @@ export class TodoService {
     })
     if(todo){
       return{
-        status:201,
+        status:200,
         massage:'success delete data',
        
       }
     }else{
       return{
-        status:401,
+        status:400,
         massage:'failed delete data'
       }
     }

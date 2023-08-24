@@ -10,13 +10,17 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth/jwt-auth.guard';
 export class TodoService {
   constructor(private readonly dbservice:PrismaService){}
   @UseGuards(JwtAuthGuard)
-  async create(createTodoDto: CreateTodoDto, user_id : number) {
+  async create(createTodoDto: CreateTodoDto, user_id : number, file) {
+    const { name, category, title, description } = createTodoDto
+
   const todo = await this.dbservice.todo.create({
     data:{
-      name: createTodoDto.name,
-      title: createTodoDto.title,
-      description: createTodoDto.description,
+      name:name,
+      category :category,
+      title:title,
+      description:description,
       status: 0,
+      filepath: file.filename,   
       user: {connect: {id : user_id} },
       
     }
@@ -70,16 +74,18 @@ export class TodoService {
       }
     }
   }
-
-
   
-  async update(id: number, updateTodoDto: UpdateTodoDto) {
+  async update(id: number, updateTodoDto) {
+    const { name, category, title, description, filepath } = updateTodoDto
+    return console.log(name)
     const todo = await this.dbservice.todo.update({
       where : {id},
       data: {
         name : updateTodoDto.name,
+        category : updateTodoDto.category,
         title : updateTodoDto.title,
         description : updateTodoDto.description,
+        filepath : updateTodoDto.filepath,
         updated_at : new Date()
       }
     })

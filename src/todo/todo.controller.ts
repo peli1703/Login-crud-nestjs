@@ -1,4 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, ValidationPipe, UsePipes } from '@nestjs/common';
+import { 
+  Controller, Get, Post, Body, Patch, Param, Delete, 
+  UseGuards, Res, Request, UseInterceptors, 
+  ValidationPipe, UsePipes, UploadedFile } from '@nestjs/common';
 import { TodoService } from './todo.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
@@ -12,25 +15,39 @@ import { UpdateTodoStatusDTO } from './dto/update-todo-status.dto';
 @Controller('todo')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination:'./image/',
+      filename: (req, file, callback)=>{
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = extname(file.originalname)
+        const filename = `${uniqueSuffix}${ext}`
+        callback(null, filename)
+      }
+    })
+  }))
+
   @UseGuards(JwtAuthGuard)
+  @UsePipes(ValidationPipe)
   @Post('/')
-  create(@Body() createTodoDto: CreateTodoDto, @Request() req) {
+  create(@Body() createTodoDto: CreateTodoDto, @Request() req, @UploadedFile() file: Express.Multer.File )
+  {
     const user_id = req.user.user_id;
-    return this.todoService.create(createTodoDto, user_id);
+    return this.todoService.create(createTodoDto, user_id, file);
   }
 
-  // @Post()
-  // @UseInterceptors(FileInterceptor('file', {
-  //   storage: diskStorage({
-  //     destination:'./image/',
-  //     filename: (req, file, callback)=>{
-  //       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-  //       const ext = extname(file.originalname)
-  //       const filename = `${file.originalname}-${uniqueSuffix}${ext}`
-  //       callback(null, filename)
-  //     }
-  //   })
-  // }))
+  @Post('/image')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination:'./image/',
+      filename: (req, file, callback)=>{
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = extname(file.originalname)
+        const filename = `${file.originalname}-${uniqueSuffix}${ext}`
+        callback(null, filename)
+      }
+    })
+  }))
 
   @Get('/')
   findAll() {
@@ -42,10 +59,10 @@ export class TodoController {
     return this.todoService.findOne(+id);
   }
 
-  
-
+  @UsePipes(ValidationPipe)
   @Patch('/:id')
-  update(@Param('id') id: string, @Body() updateTodoDto: UpdateTodoDto) {
+  update(@Param('id') id: string, @Body() updateTodoDto) {
+    console.log(updateTodoDto)
     return this.todoService.update(+id, updateTodoDto);
   }
 

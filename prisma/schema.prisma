@@ -26,9 +26,11 @@ model user {
 model todo {
   id          Int         @id @default(autoincrement())
   name        String      @db.VarChar(45)
+  category    String      @db.VarChar(45)
   title       String      @db.VarChar(255)
   description String      @db.VarChar(255)
   status      Int
+  filepath    String      
   user_id     Int         @db.Int
   created_at  DateTime?   @db.DateTime@default(now())
   updated_at  DateTime?   @db.DateTime(0)
